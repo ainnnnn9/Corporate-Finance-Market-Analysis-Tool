@@ -35,7 +35,7 @@ streamlit run app.py
 ```
 
 ## 6. Product Link / Demo
-- **Live App:** 
+- **Live App:** https://corporate-finance-market-analysis-tool-acc102.streamlit.app/
 - **GitHub Repository:** 
 - **Demo Video:** 
 
