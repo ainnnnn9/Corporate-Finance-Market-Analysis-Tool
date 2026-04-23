@@ -1,185 +1,167 @@
 import streamlit as st
 import pandas as pd
 import wrds
-import yfinance as yf
 import plotly.graph_objects as go
-from datetime import datetime, timedelta
+from datetime import datetime
 
-# --- Page Config ---
-st.set_page_config(page_title="Corporate Finance Insight Tool", layout="wide")
-
-st.title("📊 Corporate Finance & Market Analysis Tool")
+# =========================
+# PAGE CONFIG
+# =========================
+st.set_page_config(page_title="WRDS Finance Tool", layout="wide")
+st.title("📊 WRDS Corporate Finance Analysis Tool")
 
 st.markdown("""
-This tool helps users evaluate whether stock performance is driven by firm-specific factors or market-wide movements.
-It provides insights into **trend, risk, drawdown, and risk-return trade-offs**.
+This tool uses **WRDS academic database** to analyze stock performance, risk, and market behavior.
+It focuses on **trend, volatility, drawdown, and cross-market comparison**.
 """)
 
-# --- WRDS Login ---
-st.sidebar.header("🔐 WRDS Login")
-username = st.sidebar.text_input("WRDS Username")
-
+# =========================
+# WRDS CONNECTION (cached)
+# =========================
 @st.cache_resource
-def connect_wrds(user):
-    if not user:
-        return None
+def get_wrds_connection():
     try:
-        db = wrds.Connection(wrds_username=user)
+        db = wrds.Connection()
         return db
+    except Exception as e:
+        return None
+
+db = get_wrds_connection()
+
+if db is None:
+    st.error("WRDS connection failed. Please check deployment environment.")
+    st.stop()
+
+# =========================
+# INPUT
+# =========================
+tickers = st.multiselect(
+    "Select Stocks",
+    ["AAPL", "MSFT", "GOOG", "AMZN", "TSLA"],
+    default=["AAPL"]
+)
+
+years = st.slider("Years of Data", 1, 5, 2)
+
+# =========================
+# FETCH FROM WRDS (CRSP style simulation)
+# =========================
+@st.cache_data
+def fetch_data(symbol):
+    try:
+        # NOTE: real WRDS CRSP query (simplified template)
+        query = f"""
+        SELECT date, prc AS close
+        FROM crsp.dsf
+        WHERE permno IN (
+            SELECT permno FROM crsp.stocknames WHERE ticker = '{symbol}'
+        )
+        AND date >= current_date - interval '{years} years'
+        """
+
+        df = db.raw_sql(query)
+
+        if df is None or df.empty:
+            return None
+
+        df['date'] = pd.to_datetime(df['date'])
+        df = df.set_index('date')
+        df = df.sort_index()
+
+        return df
+
     except:
         return None
 
-db = connect_wrds(username)
+# =========================
+# LOAD DATA
+# =========================
+data = {}
 
-if not db:
-    st.info("👈 Enter WRDS username (password via terminal)")
+for t in tickers:
+    df = fetch_data(t)
+    if df is not None and not df.empty:
+        data[t] = df
+    else:
+        st.warning(f"{t} data not found in WRDS")
+
+if len(data) == 0:
+    st.error("No valid WRDS data loaded")
     st.stop()
 
-# --- Inputs ---
-st.subheader("⚙️ Input Parameters")
-
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    tickers = st.multiselect(
-        "Select Companies",
-        ["AAPL", "MSFT", "GOOG", "AMZN", "TSLA"],
-        default=["AAPL"]
-    )
-
-with col2:
-    bench_dict = {
-        "S&P 500 (US)": "^GSPC",
-        "Hang Seng (HK)": "^HSI",
-        "FTSE 100 (UK)": "^FTSE",
-        "Nikkei 225 (JP)": "^N225"
-    }
-    bench_name = st.selectbox("Benchmark", list(bench_dict.keys()))
-    benchmark = bench_dict[bench_name]
-
-with col3:
-    years = st.slider("Years", 1, 5, 2)
-
-# --- Data Fetch ---
-@st.cache_data
-def fetch(symbol, years):
-    start = datetime.now() - timedelta(days=years*365)
-    df = yf.download(symbol, start=start)
-
-    if isinstance(df.columns, pd.MultiIndex):
-        df.columns = df.columns.get_level_values(0)
-
-    return df
-
-data = {t: fetch(t, years) for t in tickers}
-bench_data = fetch(benchmark, years)
-
-if any(df.empty for df in data.values()) or bench_data.empty:
-    st.error("Data error")
-    st.stop()
-
-# --- Price Trend ---
-st.subheader("📈 Price Trend & Moving Average")
+# =========================
+# PRICE TREND
+# =========================
+st.subheader("📈 Price Trend")
 
 fig = go.Figure()
 
 for t, df in data.items():
-    df['MA50'] = df['Close'].rolling(50).mean()
-    df['MA200'] = df['Close'].rolling(200).mean()
-
-    fig.add_trace(go.Scatter(x=df.index, y=df['Close'], name=f"{t} Price"))
-    fig.add_trace(go.Scatter(x=df.index, y=df['MA50'], name=f"{t} MA50", line=dict(dash='dash')))
-    fig.add_trace(go.Scatter(x=df.index, y=df['MA200'], name=f"{t} MA200"))
+    fig.add_trace(go.Scatter(
+        x=df.index,
+        y=df['close'],
+        name=t
+    ))
 
 fig.update_layout(template="plotly_white")
-st.plotly_chart(fig, use_container_width=True)
+st.plotly_chart(fig, use_container_width=True, key="price")
 
-# --- Volatility ---
-st.subheader("🛡️ Volatility (Risk)")
+# =========================
+# RETURNS
+# =========================
+st.subheader("📊 Returns Comparison")
 
-fig_vol = go.Figure()
-
-for t, df in data.items():
-    returns = df['Close'].pct_change()
-    vol = returns.rolling(21).std() * (252**0.5)
-    fig_vol.add_trace(go.Scatter(x=df.index, y=vol, name=t))
-
-fig_vol.update_layout(template="plotly_white")
-st.plotly_chart(fig_vol, use_container_width=True)
-
-# --- Cumulative Return ---
-st.subheader("📊 Cumulative Return Comparison")
-
-fig_ret = go.Figure()
+fig2 = go.Figure()
 
 for t, df in data.items():
-    norm = (df['Close'] / df['Close'].iloc[0]) * 100
-    fig_ret.add_trace(go.Scatter(x=df.index, y=norm, name=t))
+    norm = (df['close'] / df['close'].iloc[0]) * 100
+    fig2.add_trace(go.Scatter(x=df.index, y=norm, name=t))
 
-bench_norm = (bench_data['Close'] / bench_data['Close'].iloc[0]) * 100
-fig_ret.add_trace(go.Scatter(x=bench_data.index, y=bench_norm, name="Benchmark"))
+fig2.update_layout(template="plotly_white")
+st.plotly_chart(fig2, use_container_width=True, key="returns")
 
-fig_ret.update_layout(template="plotly_white")
-st.plotly_chart(fig_ret, use_container_width=True)
+# =========================
+# VOLATILITY
+# =========================
+st.subheader("🛡️ Volatility")
 
-# --- Drawdown ---
-st.subheader("📉 Maximum Drawdown")
-
-fig_dd = go.Figure()
-
-for t, df in data.items():
-    roll_max = df['Close'].cummax()
-    drawdown = (df['Close'] - roll_max) / roll_max
-    fig_dd.add_trace(go.Scatter(x=df.index, y=drawdown, name=t))
-
-fig_dd.update_layout(template="plotly_white")
-st.plotly_chart(fig_dd, use_container_width=True)
-
-# --- Risk vs Return ---
-st.subheader("⚖️ Risk vs Return")
-
-risk = []
-ret = []
-labels = []
+fig3 = go.Figure()
 
 for t, df in data.items():
-    r = df['Close'].pct_change().dropna()
+    returns = df['close'].pct_change()
+    vol = returns.rolling(21).std() * (252 ** 0.5)
+    fig3.add_trace(go.Scatter(x=df.index, y=vol, name=t))
 
-    ann_return = (df['Close'].iloc[-1] / df['Close'].iloc[0])**(252/len(df)) - 1
-    ann_vol = r.std() * (252**0.5)
+fig3.update_layout(template="plotly_white")
+st.plotly_chart(fig3, use_container_width=True, key="vol")
 
-    risk.append(ann_vol)
-    ret.append(ann_return)
-    labels.append(t)
+# =========================
+# DRAW DOWN
+# =========================
+st.subheader("📉 Drawdown")
 
-fig_scatter = go.Figure()
-
-fig_scatter.add_trace(go.Scatter(
-    x=risk,
-    y=ret,
-    mode='markers+text',
-    text=labels,
-    textposition="top center"
-))
-
-fig_scatter.update_layout(
-    xaxis_title="Risk",
-    yaxis_title="Return",
-    template="plotly_white"
-)
-
-st.plotly_chart(fig_scatter, use_container_width=True)
-
-# --- Analysis ---
-st.subheader("📑 Automated Insights")
+fig4 = go.Figure()
 
 for t, df in data.items():
-    current = df['Close'].iloc[-1]
-    ma200 = df['MA200'].iloc[-1]
+    roll_max = df['close'].cummax()
+    dd = (df['close'] - roll_max) / roll_max
+    fig4.add_trace(go.Scatter(x=df.index, y=dd, name=t))
 
-    if current > ma200:
-        st.success(f"{t}: Bullish trend")
+fig4.update_layout(template="plotly_white")
+st.plotly_chart(fig4, use_container_width=True, key="dd")
+
+# =========================
+# INSIGHTS
+# =========================
+st.subheader("📑 Insights")
+
+for t, df in data.items():
+    latest = df['close'].iloc[-1]
+    mean = df['close'].mean()
+
+    if latest > mean:
+        st.success(f"{t}: Above long-term average (bullish bias)")
     else:
-        st.warning(f"{t}: Bearish trend")
+        st.warning(f"{t}: Below long-term average (weak trend)")
 
-st.caption(f"Data source: WRDS & Yahoo Finance | {datetime.now().date()}")
+st.caption(f"WRDS powered analysis | Generated {datetime.now().date()}")
