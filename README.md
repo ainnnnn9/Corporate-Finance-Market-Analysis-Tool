@@ -4,13 +4,12 @@
 This project helps finance and accounting students understand whether a stock’s performance is driven by firm-specific factors or broader market movements.
 
 ## 2. Data
-- WRDS (Wharton Research Data Services)
-- Yahoo Finance API  
-Access date: April 2026  
+- **Source:** WRDS (Wharton Research Data Services), Yahoo Finance API
+- **Access Date:** April 2026
 
-Key fields:
+**Key Fields:**
 - Closing prices
-- Returns
+- Daily returns
 - Market index data
 
 ## 3. Methods
@@ -19,7 +18,7 @@ Key fields:
 - Moving averages (trend analysis)
 - Volatility (risk measurement)
 - Drawdown (downside risk)
-- Correlation and benchmarking
+- Benchmark comparison and correlation
 - Visualization using Plotly
 
 ## 4. Key Findings
@@ -33,16 +32,21 @@ Key fields:
 ```bash
 pip install streamlit yfinance wrds plotly pandas
 streamlit run app.py
+```
 
 ## 6. Product Link / Demo
-[Insert Streamlit or GitHub link]
+- **Live App:** https://your-streamlit-link-here
+- **GitHub Repository:** https://github.com/your-username/your-repo
+- **Demo Video:** https://your-video-link-here
 
 ## 7. Limitations & Next Steps
--Yahoo Finance data may be inconsistent
--Limited WRDS integration
--No predictive modelling
 
-Future improvements:
--Portfolio optimization
--Fundamental analysis
--Enhanced WRDS usage
+**Limitations:**
+- Yahoo Finance data may be inconsistent
+- Limited WRDS integration
+- No predictive modelling
+
+**Future Improvements:**
+- Portfolio optimization
+- Fundamental analysis integration
+- Enhanced WRDS data usage
