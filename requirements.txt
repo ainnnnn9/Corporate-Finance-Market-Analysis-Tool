@@ -1,6 +1,5 @@
 streamlit
 pandas
 plotly
-yfinance
 wrds
 psycopg2-binary
