@@ -35,9 +35,9 @@ streamlit run app.py
 ```
 
 ## 6. Product Link / Demo
-- **Live App:** https://your-streamlit-link-here
-- **GitHub Repository:** https://github.com/your-username/your-repo
-- **Demo Video:** https://your-video-link-here
+- **Live App:** 
+- **GitHub Repository:** 
+- **Demo Video:** 
 
 ## 7. Limitations & Next Steps
 
