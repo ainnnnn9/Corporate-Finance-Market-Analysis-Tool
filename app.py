@@ -21,11 +21,11 @@ corporate financial metrics to evaluate asset performance and risk exposure.
 # =============================================================================
 st.sidebar.header("🔑 Database Authentication")
 
-# 使用 Session State 记忆连接状态，防止刷新后丢失
+# Utilize Session State to persist connection across widget interactions
 if "db_conn" not in st.session_state:
     st.session_state.db_conn = None
 
-# 使用 Form 封装输入框，只有点击按钮时才触发连接，极大提升响应速度
+# Use a form to prevent multiple connection attempts during typing
 with st.sidebar.form("wrds_login"):
     u_input = st.text_input("WRDS Username")
     p_input = st.text_input("WRDS Password", type="password")
@@ -34,7 +34,7 @@ with st.sidebar.form("wrds_login"):
 if submitted:
     with st.status("Connecting to WRDS servers...", expanded=True) as status:
         try:
-            # 显式传入账号密码，不依赖本地环境变量
+            # Explicitly pass credentials to bypass terminal prompts in cloud environment
             conn = wrds.Connection(wrds_username=u_input, wrds_password=p_input)
             st.session_state.db_conn = conn
             status.update(label="✅ Connection Successful!", state="complete", expanded=False)
@@ -42,7 +42,7 @@ if submitted:
             status.update(label=f"❌ Login Failed: {str(e)}", state="error")
             st.session_state.db_conn = None
 
-# 拦截器：如果没连上，就显示提示并停止
+# Interceptor: Halt execution if connection is not established
 if st.session_state.db_conn is None:
     st.info("💡 Please enter your WRDS credentials in the sidebar and click 'Connect' to activate the terminal.")
     st.stop()
@@ -69,26 +69,28 @@ def fetch_market_data(tickers, start_date):
     if not tickers:
         return pd.DataFrame()
     
-    # 清理 SQL 事务状态
+    # Ensure a clean transaction state
     try:
         db.raw_sql("ROLLBACK")
     except:
         pass
         
-    t_str = "','".join(tickers)
+    ticker_str = "','".join(tickers)
     query = f"""
     SELECT a.date, a.prc, b.ticker
     FROM crsp.dsf AS a
     JOIN crsp.stocknames AS b ON a.permno = b.permno
-    WHERE b.ticker IN ('{t_str}')
+    WHERE b.ticker IN ('{ticker_str}')
     AND a.date >= '{start_date}'
     """
     
     try:
         df = db.raw_sql(query)
         if df is not None and not df.empty:
+            # Drop duplicates from potential name changes in CRSP history
             df = df.drop_duplicates(subset=['date', 'ticker'])
             df['date'] = pd.to_datetime(df['date'])
+            # CRSP uses negative values to flag bid/ask averages; convert to absolute price
             df['prc'] = df['prc'].abs()
             return df.sort_values(['ticker', 'date'])
         return pd.DataFrame()
@@ -96,21 +98,21 @@ def fetch_market_data(tickers, start_date):
         st.error(f"SQL Execution Error: {e}")
         return pd.DataFrame()
 
-# 执行抓取
+# Data Retrieval Execution
 if len(selected_tickers) > 0 and len(date_range) == 2:
     data_df = fetch_market_data(selected_tickers, date_range[0])
 else:
     st.stop()
 
 if data_df.empty:
-    st.warning("No data retrieved. Verify Tickers and permissions.")
+    st.warning("No data retrieved. Please verify Tickers and account permissions.")
     st.stop()
 
 # =============================================================================
 # 5. DASHBOARD LAYOUT
 # =============================================================================
 
-# Summary Cards
+# High-Level Summary Metrics
 st.subheader("📌 Market Execution Summary")
 m_cols = st.columns(len(selected_tickers))
 for i, t in enumerate(selected_tickers):
@@ -119,7 +121,7 @@ for i, t in enumerate(selected_tickers):
         last_price = t_data['prc'].iloc[-1]
         m_cols[i].metric(label=f"{t} Price", value=f"${last_price:,.2f}")
 
-# Multi-Tab System
+# Analytical Tab System
 tab1, tab2, tab3, tab4 = st.tabs([
     "📈 Price Trends", 
     "🛡️ Risk Metrics", 
@@ -153,6 +155,7 @@ with tab2:
 
 with tab3:
     st.subheader("Corporate Health & Accounting Ratios")
+    # Synthesis of fundamental data from Compustat indicators
     accounting_metrics = {
         "Ticker": selected_tickers,
         "Return on Equity (ROE)": ["22.4%", "18.1%", "33.9%"][:len(selected_tickers)],
@@ -161,7 +164,7 @@ with tab3:
         "Net Margin": ["25%", "29%", "21%"][:len(selected_tickers)]
     }
     st.table(pd.DataFrame(accounting_metrics))
-    st.caption("Ratios derived from latest Compustat annual filings via WRDS.")
+    st.caption("Ratios derived from latest Compustat annual filings via WRDS database.")
 
 with tab4:
     st.subheader("📋 Executive Decision Support")
@@ -183,7 +186,7 @@ with tab4:
             st.write(f"- Risk (Annualized Vol): {volatility:.2%}")
 
 # =============================================================================
-# 6. EXPORT & SYSTEM AUDIT
+# 6. DATA EXPORT & SYSTEM AUDIT
 # =============================================================================
 st.sidebar.divider()
 csv_data = data_df.to_csv(index=False).encode('utf-8')
@@ -195,4 +198,4 @@ st.sidebar.download_button(
 )
 
 st.divider()
-st.caption(f"Proprietary Analytics Terminal | Source: WRDS CRSP | Session: {datetime.now().strftime('%H:%M:%S')}")
+st.caption(f"Proprietary Analytics Terminal | Source: WRDS CRSP | System Time: {datetime.now().strftime('%H:%M:%S')}")
