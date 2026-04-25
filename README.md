@@ -16,7 +16,7 @@ Instead of focusing on trading decisions, the tool provides analytical insights 
 
 ## 2. Data
 
-* **Primary Source:** **WRDS CRSP** (Center for Research in Security Prices) database.
+* **Primary Source:** WRDS CRSP (Center for Research in Security Prices) database.
 * **Access Date:** April 2026 (Live API Retrieval).
 * **Key Fields:**
     * `date`: Trading day timestamp for time-series alignment.
@@ -73,7 +73,7 @@ Instead of focusing on trading decisions, the tool provides analytical insights 
 * **Subscription Required:** The application requires valid WRDS credentials, limiting its use to academic and institutional environments.
 
 ### Future Improvements
-* **Dynamic Fundamentals:** Integrate the **Compustat** database to automate the retrieval of real-time Balance Sheets and Income Statements.
-* **ESG Integration:** Incorporate **Biodiversity Risk** and corporate governance metrics to align with modern sustainable investment research.
-* **Portfolio Optimization:** Implement **Mean-Variance Optimization (MVO)** to suggest mathematically efficient asset allocations.
+* **Dynamic Fundamentals:** Integrate the Compustat database to automate the retrieval of real-time Balance Sheets and Income Statements.
+* **ESG Integration:** Incorporate Biodiversity Risk and corporate governance metrics to align with modern sustainable investment research.
+* **Portfolio Optimization:** Implement Mean-Variance Optimization to suggest mathematically efficient asset allocations.
 * **Advanced UI:** Develop a responsive research dashboard to support multi-asset cross-comparisons and mobile viewing.
