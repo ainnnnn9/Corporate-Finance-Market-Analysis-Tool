@@ -62,7 +62,7 @@ Instead of focusing on trading decisions, the tool provides analytical insights 
 3.  **Authentication:** Enter your WRDS credentials in the sidebar to establish the secure database tunnel.
 
 ## 6. Demonstration
-* **Video Demo:** [Insert your video link here]
+* **Video Demo:** https://www.bilibili.com/video/BV1JwoRBfEuZ/?vd_source=f4e40d43bb4f08b83c086b7dcc8976e6
 * **Local Deployment:** This application is optimized for local workstation execution to ensure maximum data retrieval speeds and stable encrypted tunneling with the WRDS cluster.
 
 ## 7. Limitations & Next Steps
