@@ -23,7 +23,7 @@ Instead of focusing on trading decisions, the tool provides analytical insights 
     * `prc`: Daily closing price (adjusted for CRSP bid-ask average conventions).
     * `ticker`: Unique stock identifier used for multi-asset cross-referencing.
 
-## 3. Methods (Cleaning, Transformation & Analysis)
+## 3. Methods 
 
 ### 🧹 Data Cleaning
 * **Join Optimization:** Eliminated duplicate records generated during the SQL merging of `dsf` and `stocknames` tables.
