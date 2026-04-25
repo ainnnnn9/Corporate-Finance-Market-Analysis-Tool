@@ -4,14 +4,12 @@
 
 (Local Streamlit App – demonstrated via CMD execution)
 
----
 
 ## 1. Problem & User
 
 This project is designed for accounting students who want to understand how market data reflects company performance and financial risk.
 Traditional accounting focuses on financial statements, but lacks real-time market insights.
 
----
 
 ## 2. Data
 
@@ -23,7 +21,6 @@ Traditional accounting focuses on financial statements, but lacks real-time mark
   * `prc` (stock price)
   * `ticker` (company identifier)
 
----
 
 ## 3. Methods (Cleaning, Transformation & Analysis)
 
@@ -53,7 +50,6 @@ Traditional accounting focuses on financial statements, but lacks real-time mark
 * Performance comparison using total return
 * Automated rating system (Outperform / Market / High Speculation)
 
----
 
 ## 4. Key Findings
 
@@ -62,7 +58,6 @@ Traditional accounting focuses on financial statements, but lacks real-time mark
 * Different companies exhibit different volatility-risk profiles
 * Automated insights simplify interpretation for non-finance users
 
----
 
 ## 5. How to Run (Local Execution via CMD)
 
@@ -74,13 +69,11 @@ Traditional accounting focuses on financial statements, but lacks real-time mark
 
 3. Enter WRDS username and password when prompted
 
----
 
 ## 6. Demo
 
 * Demo Video: (insert link)
 
----
 
 ## 7. Limitations & Next Steps
 
@@ -91,5 +84,3 @@ Traditional accounting focuses on financial statements, but lacks real-time mark
   * Integrate real financial statement data
   * Expand financial indicators
   * Improve UI and usability
-
----
