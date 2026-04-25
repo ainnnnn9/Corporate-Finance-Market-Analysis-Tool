@@ -8,7 +8,7 @@ This project is designed for accounting students who want to understand how mark
 
 * Source: WRDS CRSP database (stock price data)
 * Access Date: 2026
-* Key Fields: date, price (prc), ticker
+* Key Fields: date, price, ticker
 
 ## 3. Methods
 
