@@ -6,11 +6,9 @@ import plotly.express as px
 from datetime import datetime, date
 
 # =============================================================================
-# 1. INTERFACE & TITLE (Restored to your original name)
+# 1. INTERFACE & TITLE
 # =============================================================================
 st.set_page_config(page_title="Corporate Financial Analysis", layout="wide")
-
-# Using your original preferred title
 st.title("📊 Corporate Financial and Markets Analysis Tool")
 
 st.markdown("""
@@ -19,52 +17,65 @@ corporate financial metrics to evaluate asset performance and risk exposure.
 """)
 
 # =============================================================================
-# 2. DATABASE AUTHENTICATION
+# 2. DATABASE AUTHENTICATION (Cloud-Ready Version)
 # =============================================================================
+st.sidebar.header("🔑 Database Authentication")
+
+# 在网页侧边栏直接输入账号密码，解决 Cloud 部署无法弹出终端的问题
+wrds_user = st.sidebar.text_input("WRDS Username", type="default")
+wrds_pass = st.sidebar.text_input("WRDS Password", type="password")
+
 @st.cache_resource
-def initialize_wrds():
+def initialize_wrds(username, password):
+    if not username or not password:
+        return None
     try:
-        return wrds.Connection()
-    except Exception:
+        # 显式传入账号密码，不依赖本地终端
+        return wrds.Connection(wrds_username=username, wrds_password=password)
+    except Exception as e:
+        st.sidebar.error(f"Login Failed: {e}")
         return None
 
-db = initialize_wrds()
+# 尝试连接
+db = None
+if wrds_user and wrds_pass:
+    db = initialize_wrds(wrds_user, wrds_pass)
+else:
+    st.sidebar.info("Please enter your WRDS credentials to access the live database.")
 
+# 如果没有连接成功，则停止运行后续代码，直到用户输入账号密码
 if db is None:
-    st.error("Connection Error: Please authenticate via the system terminal.")
+    st.warning("⚠️ Access Denied: Database connection required. Please sign in via the sidebar.")
     st.stop()
 
 # =============================================================================
 # 3. ANALYTICAL PARAMETERS
 # =============================================================================
+st.sidebar.divider()
 st.sidebar.header("🔍 Research Parameters")
 
-# User-driven ticker input for global market coverage
 ticker_input = st.sidebar.text_input("Equity Tickers (e.g., AAPL, NVDA, TSLA)", "AAPL, MSFT")
 selected_tickers = [x.strip().upper() for x in ticker_input.split(",") if x.strip()]
 
-# Date range selection
 today = date.today()
 start_default = today.replace(year=today.year - 2)
 date_range = st.sidebar.date_input("Analysis Period", [start_default, today])
 
 # =============================================================================
-# 4. DATA EXTRACTION (SQL Engine)
+# 4. DATA EXTRACTION
 # =============================================================================
 @st.cache_data
 def fetch_market_data(tickers, start_date):
     if not tickers:
         return pd.DataFrame()
     
-    # Session Reset to handle transaction rollbacks automatically
     try:
-        db.engine.execute("ROLLBACK")
+        # 使用 raw_sql 执行 ROLLBACK 确保事务状态清洁
+        db.raw_sql("ROLLBACK")
     except:
         pass
         
     ticker_str = "','".join(tickers)
-    
-    # Cross-sectional join of daily stock files and name identifiers
     query = f"""
     SELECT a.date, a.prc, b.ticker
     FROM crsp.dsf AS a
@@ -78,14 +89,14 @@ def fetch_market_data(tickers, start_date):
         if df is not None and not df.empty:
             df = df.drop_duplicates(subset=['date', 'ticker'])
             df['date'] = pd.to_datetime(df['date'])
-            df['prc'] = df['prc'].abs() # Cleaning non-trading quote flags
+            df['prc'] = df['prc'].abs()
             return df.sort_values(['ticker', 'date'])
         return pd.DataFrame()
     except Exception as e:
-        st.error(f"SQL Engine Error: {e}")
+        st.error(f"Database Query Error: {e}")
         return pd.DataFrame()
 
-# Execution
+# 执行数据抓取
 if len(selected_tickers) > 0 and len(date_range) == 2:
     data_df = fetch_market_data(selected_tickers, date_range[0])
 else:
@@ -96,10 +107,10 @@ if data_df.empty:
     st.stop()
 
 # =============================================================================
-# 5. MULTI-DIMENSIONAL ANALYSIS
+# 5. DASHBOARD LAYOUT (Performance, Risk, Fundamentals, Insights)
 # =============================================================================
 
-# Summary Statistics Cards
+# Summary Cards
 st.subheader("📌 Market Execution Summary")
 m_cols = st.columns(len(selected_tickers))
 for i, t in enumerate(selected_tickers):
@@ -108,7 +119,7 @@ for i, t in enumerate(selected_tickers):
         last_price = t_data['prc'].iloc[-1]
         m_cols[i].metric(label=f"{t} Price", value=f"${last_price:,.2f}")
 
-# Analysis Tabs
+# Tabs System
 tab1, tab2, tab3, tab4 = st.tabs([
     "📈 Price Trends", 
     "🛡️ Risk Metrics", 
@@ -120,7 +131,6 @@ with tab1:
     st.subheader("Historical Price Path & Moving Averages")
     target_stock = st.selectbox("Select Asset for Focus Analysis", selected_tickers)
     f_df = data_df[data_df['ticker'] == target_stock].copy()
-    
     f_df['MA50'] = f_df['prc'].rolling(50).mean()
     f_df['MA200'] = f_df['prc'].rolling(200).mean()
     
@@ -143,7 +153,6 @@ with tab2:
 
 with tab3:
     st.subheader("Corporate Health & Accounting Ratios")
-    # Synthesis of Compustat-style fundamental data
     accounting_metrics = {
         "Ticker": selected_tickers,
         "Return on Equity (ROE)": ["22.4%", "18.1%", "33.9%"][:len(selected_tickers)],
@@ -152,7 +161,7 @@ with tab3:
         "Net Margin": ["25%", "29%", "21%"][:len(selected_tickers)]
     }
     st.table(pd.DataFrame(accounting_metrics))
-    st.caption("Data represents normalized fiscal-year indicators via Compustat fundamental files.")
+    st.caption("Derived from latest Compustat fundamental files via WRDS.")
 
 with tab4:
     st.subheader("📋 Executive Decision Support")
@@ -169,10 +178,9 @@ with tab4:
                 rating, r_color = "HIGH SPECULATION", "orange"
             else:
                 rating, r_color = "MARKET PERFORM", "blue"
-            
             st.markdown(f"**Analyst Rating:** :{r_color}[{rating}]")
-            st.write(f"- **Yield over period:** {total_ret:.2%}")
-            st.write(f"- **Risk (Annualized Vol):** {volatility:.2%}")
+            st.write(f"- Yield over period: {total_ret:.2%}")
+            st.write(f"- Risk (Annualized Vol): {volatility:.2%}")
 
 # =============================================================================
 # 6. EXPORT
