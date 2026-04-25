@@ -1,9 +1,9 @@
-# Corporate Financial and Markets Analysis Tool
+# 📊 Corporate Finance & Market Analysis Tool
 
-## 🔗 Product Link
-
-(Local Streamlit App – demonstrated via CMD execution)
-
+## 🔗 Product Demo (Local Streamlit App)
+Run locally using:
+```bash
+streamlit run app.py
 
 ## 1. Problem & User
 
@@ -70,10 +70,9 @@ Traditional accounting focuses on financial statements, but lacks real-time mark
 3. Enter WRDS username and password when prompted
 
 
-## 6. Demo
-
-* Demo Video: (insert link)
-
+## 6. Demonstration
+* **Video Demo:** [Insert your video link here]
+* **Local Deployment:** This application is designed for local workstation execution to maximize data retrieval speed from the WRDS cluster. Please refer to the 'How to Run' section for setup instructions.
 
 ## 7. Limitations & Next Steps
 
