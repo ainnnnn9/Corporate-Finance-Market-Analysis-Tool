@@ -16,79 +16,64 @@ Instead of focusing on trading decisions, the tool provides analytical insights 
 
 ## 2. Data
 
-- Source:
-  - WRDS (Wharton Research Data Services)
-  - Yahoo Finance (via yfinance API)
+* **Primary Source:** **WRDS CRSP** (Center for Research in Security Prices) database.
+* **Access Date:** April 2026 (Live API Retrieval).
+* **Key Fields:**
+    * `date`: Trading day timestamp for time-series alignment.
+    * `prc`: Daily closing price (adjusted for CRSP bid-ask average conventions).
+    * `ticker`: Unique stock identifier used for multi-asset cross-referencing.
 
-- Access Date:
-  - April 2026
+## 3. Methods (Cleaning, Transformation & Analysis)
 
-- Key Fields:
-  - Close Price
-  - Daily Returns
-  - Moving Averages (50-day, 200-day)
+### 🧹 Data Cleaning
+* **Join Optimization:** Eliminated duplicate records generated during the SQL merging of `dsf` and `stocknames` tables.
+* **Price Correction:** Systematically converted negative price values into absolute values to ensure analytical accuracy (per CRSP data standards).
+* **Standardization:** Implemented `pandas` to normalize timestamps and handle missing trading periods.
 
+### 🔄 Data Transformation
+* **Structural Sorting:** Organized the primary dataframe by `ticker` and `date` to facilitate rolling calculations.
+* **Moving Averages:** Developed 50-day (short-term) and 200-day (long-term) rolling indicators to identify market momentum.
+* **Quantitative Analytics:** * **Returns:** Calculated percentage changes to measure asset growth.
+    * **Volatility:** Computed annualized standard deviation to quantify price uncertainty.
+    * **Max Drawdown:** Measured the peak-to-trough decline to assess capital preservation risk.
 
-## 3. Methods
-
-The main Python workflow includes:
-
-- Data retrieval using yfinance  
-- Data cleaning:
-  - Handling missing values  
-  - Flattening multi-index columns  
-- Feature engineering:
-  - Moving averages (MA50, MA200)  
-  - Daily returns  
-  - Rolling volatility (21-day)  
-- Data transformation:
-  - Normalization (Base 100 for comparison)  
-- Analysis:
-  - Trend analysis (price vs MA200)  
-  - Risk measurement (volatility)  
-  - Correlation with market benchmark  
-
+### 📊 Metrics & Comparisons
+* **Comparative Benchmarking:** Enabled side-by-side analysis for major equities (e.g., AAPL vs. MSFT).
+* **Risk Evaluation:** Visualized downside exposure through integrated drawdown charts.
+* **Automated Rating System:** Built a logic-driven engine that assigns *Outperform*, *Market Perform*, or *High Speculation* ratings based on the Risk-Return profile.
 
 ## 4. Key Findings
 
-- Moving averages help identify short-term and long-term trends  
-- Volatility reflects the risk level of a stock  
-- Market benchmarks provide a reference for comparison  
-- Correlation indicates how much a stock is driven by market movements  
-- Normalized comparison allows cross-market performance evaluation  
+* **Trend Signaling:** Moving average crossovers effectively highlight entry and exit windows for long-term investors.
+* **Stress Insights:** Maximum drawdown metrics provide a clearer picture of historical downside risk than simple volatility measures.
+* **Asset Heterogeneity:** The tool reveals that market-leading tech companies often exhibit vastly different risk profiles despite similar price trends.
+* **Research Efficiency:** Automated insights allow researchers to skip manual calculations and move straight to strategic interpretation.
 
+## 5. How to Run (Local Execution via CMD)
 
-## 5. How to Run
-
-1. Install required packages:
-
+1.  **Install Dependencies:**
+    ```bash
     pip install -r requirements.txt
-
-2. Run the app:
-
+    ```
+2.  **Launch the Application:**
+    ```bash
     streamlit run app.py
+    ```
+3.  **Authentication:** Enter your WRDS credentials in the sidebar to establish the secure database tunnel.
 
-3. Enter:
-- WRDS username (password via terminal)  
-- Stock ticker (e.g. AAPL)  
-- Benchmark and time period  
-
-
-## 6. Product & Demo
-
-- Local Streamlit interactive app  
-- Demo video included in submission  
-
+## 6. Demonstration
+* **Video Demo:** [Insert your video link here]
+* **Local Deployment:** This application is optimized for local workstation execution to ensure maximum data retrieval speeds and stable encrypted tunneling with the WRDS cluster.
 
 ## 7. Limitations & Next Steps
 
 ### Current Limitations
-* **Data Latency:** The system relies on CRSP daily files, which typically have a multi-month lag compared to real-time market feeds.
-* **Simplified Ratios:** Financial indicators (e.g., ROE, Net Margin) are currently synthesized; they are not yet dynamically linked to real-time SEC filings.
-* **Access Dependency:** Full functionality requires an active **WRDS subscription**, which limits general public usability.
+* **Data Latency:** Dependent on the update cycles of CRSP daily files, which are not suitable for high-frequency trading.
+* **Simplified Ratios:** Accounting indicators are currently synthesized for demonstration and not yet dynamically pulled from SEC filings.
+* **Subscription Required:** The application requires valid WRDS credentials, limiting its use to academic and institutional environments.
 
 ### Future Improvements
 * **Dynamic Fundamentals:** Integrate the **Compustat** database to automate the retrieval of real-time Balance Sheets and Income Statements.
-* **ESG Integration:** Expand the research scope by incorporating **Biodiversity Risk** and corporate governance indicators to reflect modern investment standards.
-* **Portfolio Optimization:** Implement a **Mean-Variance Optimization (MVO)** module to suggest mathematically efficient asset allocations.
-* **Enhanced UI:** Develop a more responsive dashboard layout to support advanced multi-asset cross-comparisons.
+* **ESG Integration:** Incorporate **Biodiversity Risk** and corporate governance metrics to align with modern sustainable investment research.
+* **Portfolio Optimization:** Implement **Mean-Variance Optimization (MVO)** to suggest mathematically efficient asset allocations.
+* **Advanced UI:** Develop a responsive research dashboard to support multi-asset cross-comparisons and mobile viewing.
