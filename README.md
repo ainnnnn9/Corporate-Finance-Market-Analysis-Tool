@@ -1,6 +1,6 @@
-# 📊 Corporate Finance & Market Analysis Tool
+#📊 Corporate Finance & Market Analysis Tool
 
-## 🔗 Product Demo (Local Streamlit App)
+##🔗 Product Demo (Local Streamlit App)
 Run locally using:
 ```bash
 streamlit run app.py
