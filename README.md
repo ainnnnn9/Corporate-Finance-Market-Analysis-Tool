@@ -82,13 +82,13 @@ The main Python workflow includes:
 
 ## 7. Limitations & Next Steps
 
-### Limitations:
-- Yahoo Finance API may be unstable  
-- WRDS requires manual login  
-- Limited financial indicators  
+### Current Limitations
+* **Data Latency:** The system relies on CRSP daily files, which typically have a multi-month lag compared to real-time market feeds.
+* **Simplified Ratios:** Financial indicators (e.g., ROE, Net Margin) are currently synthesized; they are not yet dynamically linked to real-time SEC filings.
+* **Access Dependency:** Full functionality requires an active **WRDS subscription**, which limits general public usability.
 
-### Next Steps:
-- Integrate full WRDS datasets (e.g. CRSP)  
-- Add financial statement metrics  
-- Improve UI/UX design  
-- Enable cloud deployment  
+### Future Improvements
+* **Dynamic Fundamentals:** Integrate the **Compustat** database to automate the retrieval of real-time Balance Sheets and Income Statements.
+* **ESG Integration:** Expand the research scope by incorporating **Biodiversity Risk** and corporate governance indicators to reflect modern investment standards.
+* **Portfolio Optimization:** Implement a **Mean-Variance Optimization (MVO)** module to suggest mathematically efficient asset allocations.
+* **Enhanced UI:** Develop a more responsive dashboard layout to support advanced multi-asset cross-comparisons.
