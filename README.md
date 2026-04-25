@@ -1,85 +1,94 @@
-#📊 Corporate Finance & Market Analysis Tool
+# 📊 Corporate Finance & Market Analysis Tool
 
-##🔗 Product Demo (Local Streamlit App)
+## 🔗 Product Demo (Local Streamlit App)
+
 Run locally using:
-```bash
-streamlit run app.py
+
+    streamlit run app.py
+
 
 ## 1. Problem & User
 
-This project is designed for accounting students who want to understand how market data reflects company performance and financial risk.
-Traditional accounting focuses on financial statements, but lacks real-time market insights.
+This project is designed for accounting and finance students who want to understand how company performance is reflected in market data.
+
+Instead of focusing on trading decisions, the tool provides analytical insights into trend, risk, and market relationships.
 
 
 ## 2. Data
 
-* Source: WRDS CRSP database
-* Access Date: 2026
-* Key Fields:
+- Source:
+  - WRDS (Wharton Research Data Services)
+  - Yahoo Finance (via yfinance API)
 
-  * `date` (trading date)
-  * `prc` (stock price)
-  * `ticker` (company identifier)
+- Access Date:
+  - April 2026
+
+- Key Fields:
+  - Close Price
+  - Daily Returns
+  - Moving Averages (50-day, 200-day)
 
 
-## 3. Methods (Cleaning, Transformation & Analysis)
+## 3. Methods
 
-### Data Cleaning
+The main Python workflow includes:
 
-* Removed duplicate records from CRSP joins
-* Converted negative price values to absolute values (CRSP convention)
-* Standardised date format using pandas
-
-### Data Transformation
-
-* Sorted data by ticker and time
-* Created rolling indicators:
-
-  * 50-day Moving Average (short-term trend)
-  * 200-day Moving Average (long-term trend)
-* Calculated:
-
-  * Returns (percentage change)
-  * Volatility (annualised standard deviation)
-  * Maximum Drawdown (peak-to-trough decline)
-
-### Metrics & Comparisons
-
-* Multi-company comparison (AAPL vs MSFT etc.)
-* Risk comparison using drawdown
-* Performance comparison using total return
-* Automated rating system (Outperform / Market / High Speculation)
+- Data retrieval using yfinance  
+- Data cleaning:
+  - Handling missing values  
+  - Flattening multi-index columns  
+- Feature engineering:
+  - Moving averages (MA50, MA200)  
+  - Daily returns  
+  - Rolling volatility (21-day)  
+- Data transformation:
+  - Normalization (Base 100 for comparison)  
+- Analysis:
+  - Trend analysis (price vs MA200)  
+  - Risk measurement (volatility)  
+  - Correlation with market benchmark  
 
 
 ## 4. Key Findings
 
-* Moving averages clearly reveal trend direction over different horizons
-* Maximum drawdown highlights downside risk during market stress
-* Different companies exhibit different volatility-risk profiles
-* Automated insights simplify interpretation for non-finance users
+- Moving averages help identify short-term and long-term trends  
+- Volatility reflects the risk level of a stock  
+- Market benchmarks provide a reference for comparison  
+- Correlation indicates how much a stock is driven by market movements  
+- Normalized comparison allows cross-market performance evaluation  
 
 
-## 5. How to Run (Local Execution via CMD)
+## 5. How to Run
 
-1. Install dependencies:
-   pip install -r requirements.txt
+1. Install required packages:
+
+    pip install -r requirements.txt
 
 2. Run the app:
-   streamlit run app.py
 
-3. Enter WRDS username and password when prompted
+    streamlit run app.py
+
+3. Enter:
+- WRDS username (password via terminal)  
+- Stock ticker (e.g. AAPL)  
+- Benchmark and time period  
 
 
-## 6. Demonstration
-* **Video Demo:** [Insert your video link here]
-* **Local Deployment:** This application is designed for local workstation execution to maximize data retrieval speed from the WRDS cluster. Please refer to the 'How to Run' section for setup instructions.
+## 6. Product & Demo
+
+- Local Streamlit interactive app  
+- Demo video included in submission  
+
 
 ## 7. Limitations & Next Steps
 
-* Financial ratios are simplified and not dynamically retrieved
-* Requires WRDS access (limits general usability)
-* Future improvements:
+### Limitations:
+- Yahoo Finance API may be unstable  
+- WRDS requires manual login  
+- Limited financial indicators  
 
-  * Integrate real financial statement data
-  * Expand financial indicators
-  * Improve UI and usability
+### Next Steps:
+- Integrate full WRDS datasets (e.g. CRSP)  
+- Add financial statement metrics  
+- Improve UI/UX design  
+- Enable cloud deployment  
